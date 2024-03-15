@@ -3,17 +3,24 @@
 #include <ESP8266HTTPClient.h>
 #include <vector>
 #include <regex>
+#include <SoftwareSerial.h>
+
+#define UN_TX D0
+#define UN_RX D1
 
 const char *ssid = "Barath";
 const char *passwd = "eswari12";
 
 HTTPClient http_client;
 WiFiClient wifi_client;
+String endpoint = "http://192.168.0.103:3001/"; // votes/addvote
+
+SoftwareSerial uno_node_serial(UN_RX, UN_TX);
 
 void setup()
 {
-  Serial.println();
   Serial.begin(9600);
+  uno_node_serial.begin(9600);
   delay(100);
 
   WiFi.begin(ssid, passwd);
@@ -27,16 +34,16 @@ void setup()
   Serial.print(WiFi.localIP());
   Serial.println();
 
-  http_client.begin(wifi_client, "http://192.168.0.103:3001/votes/addvote");
+  http_client.begin(wifi_client, endpoint);
 }
 
 void loop()
 {
   int state = 0; // 1-vote
 
-  if (Serial.available() > 0)
+  if (uno_node_serial.available() > 0)
   {
-    String string_from_uno = Serial.readStringUntil('\n');
+    String string_from_uno = uno_node_serial.readStringUntil('\n');
     String cp_string_from_uno = string_from_uno;
     Serial.println(string_from_uno);
 
@@ -66,13 +73,19 @@ void loop()
     if (parsed_string_from_uno[0] == "vote")
     {
       state = 1;
+      http_client.setURL(endpoint + "votes/addvote");
       String voted_by = parsed_string_from_uno[1];
       String voted_for = parsed_string_from_uno[2];
       String JSON_format_data = "{\"voted_by\":" + voted_by + ",\"voted_for\":" + voted_for + "}";
       Serial.println(JSON_format_data);
       http_client.addHeader("Content-Type", "application/json");
       Serial.print("response status code: ");
-      Serial.println(http_client.POST(JSON_format_data));
+      int response_status = http_client.POST(JSON_format_data);
+      Serial.println(response_status);
+      char string_to_send[3];
+      sprintf(string_to_send, "%d\n", response_status);
+      Serial.println(string_to_send);
+      uno_node_serial.write(string_to_send);
     }
     Serial.println("hello");
   }
