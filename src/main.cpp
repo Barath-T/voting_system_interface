@@ -39,7 +39,6 @@ void setup()
 
 void loop()
 {
-  int state = 0; // 1-vote
 
   if (uno_node_serial.available() > 0)
   {
@@ -72,7 +71,6 @@ void loop()
 
     if (parsed_string_from_uno[0] == "vote")
     {
-      state = 1;
       http_client.setURL(endpoint + "votes/addvote");
       String voted_by = parsed_string_from_uno[1];
       String voted_for = parsed_string_from_uno[2];
@@ -82,10 +80,6 @@ void loop()
       Serial.print("response status code: ");
       int response_status = http_client.POST(JSON_format_data);
       Serial.println(response_status);
-      char string_to_send[3];
-      sprintf(string_to_send, "%d\n", response_status);
-      Serial.println(string_to_send);
-      uno_node_serial.write(string_to_send);
     }
     Serial.println("hello");
   }
