@@ -3,6 +3,7 @@ A Fingerprint based voting system.
 > Arduino: Fingerprint sensor, voting selection.
 > 
 > NodeMCU: interface between Arduino and websever which interacts with database and ui.
+> 
 > WebApp: displays result and other required data.
 > 
 > Webserver: database interactions and business logics.
